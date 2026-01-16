@@ -41,15 +41,18 @@ def load_config(config_path: str = None) -> Dict[str, Any]:
     with open(config_path, 'r') as f:
         return yaml.safe_load(f)
 
-def get_openai_client() -> OpenAI:
+def get_openai_client(config: Dict[str, Any] = None) -> OpenAI:
     """Initialize OpenAI client for OpenRouter"""
+    if config is None:
+        config = load_config()
+
     api_key = os.getenv("OPENROUTER_API_KEY")
     if not api_key:
         raise ValueError("OPENROUTER_API_KEY environment variable not set")
 
     return OpenAI(
         api_key=api_key,
-        base_url="https://openrouter.ai/api/v1"
+        base_url=config['llm']['base_url']
     )
 
 def call_llm(
@@ -76,8 +79,8 @@ def call_llm(
             print(f"LLM call failed (attempt {attempt + 1}), retrying...")
             time.sleep(2 ** attempt)  # Exponential backoff
 
-def load_prompt_template(template_name: str, **kwargs) -> str:
-    """Load and format prompt template"""
+def load_prompt_template(template_name: str) -> str:
+    """Load prompt template"""
     # Get the project root directory (parent of scripts directory)
     script_dir = os.path.dirname(os.path.abspath(__file__))
     project_root = os.path.dirname(script_dir)
@@ -86,7 +89,7 @@ def load_prompt_template(template_name: str, **kwargs) -> str:
     with open(template_path, 'r') as f:
         template = f.read()
 
-    return template.format(**kwargs)
+    return template
 
 def parse_json_response(response: str, max_retries: int = 3) -> Dict[str, Any]:
     """Parse JSON response with error handling and repair attempts"""

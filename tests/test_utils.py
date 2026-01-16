@@ -15,8 +15,9 @@ def test_load_config():
 
 def test_openai_client():
     """Test OpenAI client initialization"""
+    config = load_config()
     try:
-        client = get_openai_client()
+        client = get_openai_client(config)
         assert client is not None
         print("✅ OpenAI client initialization test passed")
     except ValueError as e:
@@ -26,8 +27,9 @@ def test_openai_client():
 
 def test_llm_call():
     """Test basic LLM call"""
+    config = load_config()
     try:
-        client = get_openai_client()
+        client = get_openai_client(config)
         prompt = "Say 'Hello, world!' and nothing else."
         response = call_llm(client, prompt, max_tokens=50)
 

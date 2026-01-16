@@ -103,7 +103,7 @@ def test_environment():
 
         # Test OpenAI client (without making API call)
         try:
-            client = get_openai_client()
+            client = get_openai_client(config)
             print("✅ OpenAI client initialization works")
         except Exception as e:
             print(f"❌ OpenAI client error: {e}")
