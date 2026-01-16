@@ -1,0 +1,25 @@
+You are an expert academic researcher helping to expand search terms for discovering scholars in the field of {domain_name}.
+
+Given these initial keywords: {keywords}
+
+Please expand this into a comprehensive set of search terms that would help find relevant research papers on ArXiv. Include:
+
+1. **Direct variations**: synonyms, alternative phrasings
+2. **Emerging terms**: cutting-edge concepts and methodologies
+3. **Related fields**: adjacent areas that collaborate with the main topic
+4. **Specific techniques**: particular methods or approaches within the field
+
+Return your response as a JSON object with this structure:
+{{
+  "expanded_keywords": [
+    {{
+      "original": "original keyword",
+      "expanded": ["expanded1", "expanded2", "expanded3"],
+      "category": "variation|emerging|related|technique"
+    }}
+  ]
+}}
+
+Focus on terms that would yield high-quality academic papers. Keep expansions relevant and avoid overly broad terms.
+
+Domain: {domain_description}

@@ -1,0 +1,32 @@
+You are analyzing academic papers to extract researcher information. For each paper, identify the key researchers and their details.
+
+Paper Details:
+Title: {title}
+Authors: {authors}
+Abstract: {abstract}
+ArXiv ID: {arxiv_id}
+Published: {published_date}
+
+For each author, extract:
+- Full name (as listed)
+- Affiliation/University (if mentioned in paper metadata or inferable from context)
+- Research focus/area (infer from their work based on title and abstract)
+- Seniority level: "junior" (PhD student/postdoc), "mid" (assistant professor/research scientist), or "senior" (associate/full professor, established researcher)
+
+Return as JSON:
+{{
+  "researchers": [
+    {{
+      "name": "Full Name",
+      "affiliation": "University/Institution",
+      "research_focus": "Brief description of their research area",
+      "seniority": "junior|mid|senior"
+    }}
+  ]
+}}
+
+Notes:
+- If affiliation is not explicitly stated, use "Unknown" rather than guessing
+- Research focus should be 2-3 sentences maximum
+- Only include authors who appear to be active researchers (not just collaborators)
+- Focus on first/last authors as they typically drive the research

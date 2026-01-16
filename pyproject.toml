@@ -1,0 +1,26 @@
+[project]
+name = "contact-scholar"
+version = "0.1.0"
+description = "Modular pipeline to discover researchers, enrich profiles, and generate personalized outreach messages"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "pandas>=2.0.0",
+    "numpy>=1.24.0",
+    "arxiv>=2.4.0",
+    "duckduckgo-search>=8.1.0",
+    "openai>=1.0.0",
+    "pyyaml>=6.0.0",
+    "jupyter>=1.0.0",
+    "python-dotenv>=1.0.0",
+    "tqdm>=4.65.0",
+    "requests>=2.31.0",
+]
+
+[tool.uv]
+dev-dependencies = [
+    "pytest>=7.4.0",
+    "black>=23.0.0",
+    "isort>=5.12.0",
+    "flake8>=6.0.0",
+]

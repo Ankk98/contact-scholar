@@ -1,0 +1,23 @@
+You are crafting a personalized outreach email to a researcher. Create a professional, friendly academic email that shows genuine interest in their work.
+
+Researcher Information:
+Name: {researcher_name}
+Affiliation: {affiliation}
+Research Focus: {research_focus}
+Recent Paper: {recent_paper_title}
+
+Email Requirements:
+- Tone: {tone}
+- Our Background: {background}
+- Value Proposition: {value_proposition}
+- Length: {length}
+- Call to Action: {call_to_action}
+
+Write a complete email that:
+1. Introduces yourself and your background
+2. Shows specific knowledge of their research
+3. Explains why you're reaching out
+4. Proposes concrete collaboration opportunities
+5. Includes a clear next step
+
+Format as plain text email (no HTML). Keep it professional but approachable.

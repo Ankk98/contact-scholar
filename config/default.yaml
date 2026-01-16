@@ -1,0 +1,55 @@
+# Contact Scholar Pipeline Configuration
+# This is a template configuration - copy and customize for your research domain
+
+# Research Domain Configuration
+domain:
+  name: "artificial-intelligence"
+  description: "General AI and machine learning research"
+
+# Initial Keywords (will be expanded by LLM)
+keywords:
+  - "artificial intelligence"
+  - "machine learning"
+  - "deep learning"
+  - "neural networks"
+
+# ArXiv Search Parameters
+arxiv:
+  categories:
+    - "cs.AI"
+    - "cs.LG"
+    - "cs.CL"
+    - "cs.CV"
+    - "stat.ML"
+  date_from: "2023-01-01"  # Papers from last 3 years
+  max_results: 1000  # Limit for testing, can be increased
+  sort_by: "submittedDate"
+  sort_order: "descending"
+
+# LLM Configuration
+llm:
+  provider: "openrouter"
+  model: "deepseek/deepseek-chat"
+  base_url: "https://openrouter.ai/api/v1"
+  temperature: 0.7
+  max_tokens: 2000
+  # Cost monitoring (estimated $0.0014-0.0028 per 1K tokens)
+  max_cost_per_run: 10.0  # USD
+
+# Email Template Configuration
+email_template:
+  tone: "professional and friendly academic outreach"
+  background: "We are a research team developing innovative solutions in [your field]. We focus on [brief description of your work]."
+  value_proposition: "We believe collaboration could lead to breakthrough discoveries in your field of research."
+  length: "150-200 words"
+  call_to_action: "Propose 2-3 concrete collaboration opportunities based on their research interests."
+
+# Processing Limits (for testing)
+processing:
+  max_researchers: 10  # Start small for testing
+  batch_size: 5  # Process in small batches
+
+# Output Configuration
+output:
+  data_dir: "data/"
+  outputs_dir: "outputs/"
