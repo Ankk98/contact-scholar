@@ -22,14 +22,21 @@ def load_config(config_path: str = None) -> Dict[str, Any]:
     3. config/default.yaml (template)
     """
     if config_path is None:
+        # Get the project root directory (parent of scripts directory)
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        project_root = os.path.dirname(script_dir)
+
         # Try custom config first, then default
-        candidates = ["config/custom.yaml", "config/default.yaml"]
+        candidates = [
+            os.path.join(project_root, "config", "custom.yaml"),
+            os.path.join(project_root, "config", "default.yaml")
+        ]
         for candidate in candidates:
             if os.path.exists(candidate):
                 config_path = candidate
                 break
         else:
-            raise FileNotFoundError("No config file found. Please create config/default.yaml or config/custom.yaml")
+            raise FileNotFoundError(f"No config file found. Looked for: {candidates}")
 
     with open(config_path, 'r') as f:
         return yaml.safe_load(f)
@@ -71,7 +78,10 @@ def call_llm(
 
 def load_prompt_template(template_name: str, **kwargs) -> str:
     """Load and format prompt template"""
-    template_path = f"config/prompts/{template_name}.txt"
+    # Get the project root directory (parent of scripts directory)
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.dirname(script_dir)
+    template_path = os.path.join(project_root, "config", "prompts", f"{template_name}.txt")
 
     with open(template_path, 'r') as f:
         template = f.read()
@@ -114,19 +124,27 @@ def parse_json_response(response: str, max_retries: int = 3) -> Dict[str, Any]:
 
 def ensure_data_dir(data_dir: str = "data/"):
     """Ensure data directory exists"""
-    os.makedirs(data_dir, exist_ok=True)
+    # Get the project root directory (parent of scripts directory)
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.dirname(script_dir)
+    full_data_dir = os.path.join(project_root, data_dir)
+    os.makedirs(full_data_dir, exist_ok=True)
+    return full_data_dir
 
 def save_csv_checkpoint(df, filename: str, data_dir: str = "data/"):
     """Save DataFrame as CSV checkpoint"""
-    ensure_data_dir(data_dir)
-    filepath = os.path.join(data_dir, filename)
+    full_data_dir = ensure_data_dir(data_dir)
+    filepath = os.path.join(full_data_dir, filename)
     df.to_csv(filepath, index=False)
     print(f"Saved checkpoint: {filepath}")
 
 def load_csv_checkpoint(filename: str, data_dir: str = "data/"):
     """Load DataFrame from CSV checkpoint"""
     import pandas as pd
-    filepath = os.path.join(data_dir, filename)
+    # Get the project root directory (parent of scripts directory)
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.dirname(script_dir)
+    filepath = os.path.join(project_root, data_dir, filename)
     if os.path.exists(filepath):
         return pd.read_csv(filepath)
     return None
