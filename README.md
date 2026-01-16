@@ -38,7 +38,13 @@ cp config/default.yaml config/custom.yaml
 # Edit config/custom.yaml for your research domain
 ```
 
-3. Run the pipeline step-by-step:
+3. Test environment (optional):
+```bash
+source .venv/bin/activate
+python test_environment.py
+```
+
+4. Run the pipeline step-by-step:
 
 ```bash
 # Activate environment
@@ -156,6 +162,28 @@ For 1000 researchers:
 - DuckDuckGo search: Free
 - Email sending: Free (Gmail SMTP)
 
+## Preparing for Public Repository
+
+Before committing to a public repository, clear sensitive data:
+
+```bash
+# Clear all notebook outputs (removes execution results that may contain API responses)
+python scripts/clear_notebook_outputs.py
+
+# Or manually for specific notebooks:
+jupyter nbconvert --clear-output --inplace notebooks/*.ipynb
+```
+
+**What gets cleared:**
+- ✅ LLM API responses and generated content
+- ✅ Execution outputs and intermediate results
+- ✅ Any sensitive data in notebook cells
+
+**What stays:**
+- ✅ Notebook code and structure
+- ✅ Comments and documentation
+- ✅ Configuration templates
+
 ## Project Structure
 
 ```
@@ -166,11 +194,13 @@ contact-scholar/
 │   └── prompts/           # LLM prompt templates
 ├── notebooks/             # Jupyter notebooks (pipeline stages)
 ├── scripts/               # Utility scripts
+│   └── clear_notebook_outputs.py  # Clear outputs before public commits
 ├── tests/                 # Basic tests
 ├── data/                  # Generated CSV files (gitignored)
 ├── outputs/               # Additional outputs (gitignored)
 ├── pyproject.toml         # uv configuration
 ├── .env.example          # Environment variables template
+├── test_environment.py    # Environment verification script
 └── README.md
 ```
 

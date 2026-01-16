@@ -38,6 +38,11 @@ wheels/
 # Jupyter Notebook
 .ipynb_checkpoints
 
+# IMPORTANT: Always clear notebook outputs before committing to public repo
+# Notebook outputs may contain sensitive data like API responses and personal information
+# Use: python scripts/clear_notebook_outputs.py
+# Or: jupyter nbconvert --clear-output --inplace notebooks/*.ipynb
+
 # IDE
 .vscode/
 .idea/
