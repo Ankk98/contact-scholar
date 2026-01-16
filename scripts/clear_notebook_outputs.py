@@ -10,7 +10,10 @@ import glob
 
 def clear_notebook_outputs():
     """Clear outputs from all notebooks in the notebooks/ directory"""
-    notebooks = glob.glob("notebooks/*.ipynb")
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.dirname(script_dir)
+    notebooks_dir = os.path.join(project_root, "notebooks")
+    notebooks = glob.glob(os.path.join(notebooks_dir, "*.ipynb"))
 
     if not notebooks:
         print("No notebooks found in notebooks/ directory")
@@ -20,10 +23,12 @@ def clear_notebook_outputs():
 
     for notebook in notebooks:
         print(f"Clearing: {notebook}")
+        # Use relative path for nbconvert command
+        rel_path = os.path.relpath(notebook, project_root)
         result = subprocess.run([
             "jupyter", "nbconvert",
-            "--clear-output", "--inplace", notebook
-        ], capture_output=True, text=True)
+            "--clear-output", "--inplace", rel_path
+        ], capture_output=True, text=True, cwd=project_root)
 
         if result.returncode == 0:
             print(f"✅ Cleared: {notebook}")

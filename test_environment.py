@@ -25,7 +25,8 @@ def test_environment():
 
     # Add virtual environment packages to path
     import os
-    venv_packages = os.path.join(os.path.dirname(__file__), ".venv", "lib", "python3.12", "site-packages")
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    venv_packages = os.path.join(script_dir, ".venv", "lib", "python3.12", "site-packages")
     if venv_packages not in sys.path:
         sys.path.insert(0, venv_packages)
 
