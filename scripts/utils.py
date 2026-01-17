@@ -6,9 +6,11 @@ import os
 import yaml
 import json
 import time
-from typing import Dict, Any, Optional
+import re
+from typing import Dict, Any, Optional, List, Tuple
 from openai import OpenAI
 from dotenv import load_dotenv
+import fitz  # PyMuPDF for PDF processing
 
 # Load environment variables
 load_dotenv()
@@ -151,3 +153,186 @@ def load_csv_checkpoint(filename: str, data_dir: str = "data/"):
     if os.path.exists(filepath):
         return pd.read_csv(filepath)
     return None
+
+def extract_text_from_pdf(pdf_path: str) -> str:
+    """Extract text content from a PDF file using PyMuPDF"""
+    try:
+        doc = fitz.open(pdf_path)
+        text = ""
+        for page in doc:
+            text += page.get_text()
+        doc.close()
+        return text
+    except Exception as e:
+        print(f"Error extracting text from {pdf_path}: {e}")
+        return ""
+
+def extract_arxiv_id_from_text(text: str) -> Optional[str]:
+    """Extract arXiv ID from PDF text content"""
+    # Look for arXiv ID patterns like arXiv:1234.56789v1 or 1234.56789
+    patterns = [
+        r'arXiv:(\d{4}\.\d{4,5}(?:v\d+)?)',  # arXiv:1234.56789v1
+        r'arXiv\s*id\s*:?\s*(\d{4}\.\d{4,5}(?:v\d+)?)',  # arXiv id: 1234.56789
+        r'(\d{4}\.\d{4,5}(?:v\d+)?)',  # Just the ID: 1234.56789v1
+    ]
+
+    for pattern in patterns:
+        match = re.search(pattern, text, re.IGNORECASE)
+        if match:
+            arxiv_id = match.group(1) if match.lastindex == 1 else match.group(1)
+            # Ensure it has the arXiv: prefix for consistency
+            if not arxiv_id.startswith('arXiv:'):
+                arxiv_id = f'arXiv:{arxiv_id}'
+            return arxiv_id
+
+    return None
+
+def extract_arxiv_id_from_filename(filename: str) -> Optional[str]:
+    """Extract arXiv ID from filename if present"""
+    # Look for patterns like 1234.56789.pdf or arXiv-1234.56789.pdf
+    patterns = [
+        r'arXiv[_\-](\d{4}\.\d{4,5}(?:v\d+)?)',  # arXiv-1234.56789
+        r'(\d{4}\.\d{4,5}(?:v\d+)?)\.pdf',  # 1234.56789.pdf
+    ]
+
+    for pattern in patterns:
+        match = re.search(pattern, filename, re.IGNORECASE)
+        if match:
+            arxiv_id = match.group(1)
+            if not arxiv_id.startswith('arXiv:'):
+                arxiv_id = f'arXiv:{arxiv_id}'
+            return arxiv_id
+
+    return None
+
+def parse_paper_metadata(text: str, client: OpenAI, config: Dict[str, Any]) -> Dict[str, Any]:
+    """Parse paper metadata from PDF text using LLM"""
+    # Create a prompt for metadata extraction
+    prompt = f"""Extract the following metadata from this academic paper text:
+
+{text[:8000]}  # Limit text to avoid token limits
+
+Return as JSON:
+{{
+  "title": "Full paper title",
+  "authors": "Author names separated by | ",
+  "abstract": "Paper abstract/summary",
+  "arxiv_id": "arXiv ID if found (format: XXXX.XXXXX)",
+  "published_date": "Publication date if available (YYYY-MM-DD format)"
+}}
+
+If any field is not found, use empty string or "Unknown".
+"""
+
+    try:
+        response = call_llm(
+            client=client,
+            prompt=prompt,
+            model=config['llm']['model'],
+            temperature=0.1,  # Low temperature for extraction
+            max_tokens=1000
+        )
+
+        data = parse_json_response(response)
+        return {
+            'title': data.get('title', ''),
+            'authors_raw': data.get('authors', ''),
+            'summary': data.get('abstract', ''),
+            'arxiv_id': data.get('arxiv_id', ''),
+            'published_date': data.get('published_date', 'Unknown')
+        }
+    except Exception as e:
+        print(f"Error parsing metadata: {e}")
+        return {
+            'title': '',
+            'authors_raw': '',
+            'summary': '',
+            'arxiv_id': '',
+            'published_date': 'Unknown'
+        }
+
+def extract_citations_from_text(text: str, client: OpenAI, config: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Extract citations/references from PDF text using LLM"""
+    # Find the references section
+    references_section = extract_references_section(text)
+
+    if not references_section:
+        return []
+
+    # Use LLM to parse the references into structured format
+    prompt = f"""Extract citation information from this references section of an academic paper:
+
+{references_section[:12000]}  # Limit to avoid token limits
+
+For each reference, extract:
+- Title of the cited paper
+- Authors of the cited paper
+- Any arXiv ID or DOI if present
+- Publication year if available
+
+Return as JSON array:
+[
+  {{
+    "title": "Title of cited paper",
+    "authors": "Author names separated by | ",
+    "arxiv_id": "arXiv ID if found",
+    "year": "Publication year"
+  }}
+]
+
+Only include academic paper citations, skip books, websites, etc. If information is missing, use empty strings.
+"""
+
+    try:
+        response = call_llm(
+            client=client,
+            prompt=prompt,
+            model=config['llm']['model'],
+            temperature=0.1,
+            max_tokens=2000
+        )
+
+        citations = parse_json_response(response)
+        if isinstance(citations, list):
+            return citations
+        return []
+    except Exception as e:
+        print(f"Error extracting citations: {e}")
+        return []
+
+def extract_references_section(text: str) -> str:
+    """Extract the references/bibliography section from PDF text"""
+    # Common section headers for references
+    patterns = [
+        r'References?\n(.*?)(?:\n\n[A-Z][a-z]|$)',  # References\n... until next section
+        r'Bibliography\n(.*?)(?:\n\n[A-Z][a-z]|$)',  # Bibliography\n...
+        r'\nReferences?\s*\n(.*?)(?:\n[A-Z]|\Z)',  # References with spacing
+    ]
+
+    for pattern in patterns:
+        match = re.search(pattern, text, re.DOTALL | re.IGNORECASE)
+        if match:
+            return match.group(1).strip()
+
+    # If no clear section found, look for lines that look like citations
+    # This is a fallback for PDFs where section headers aren't clear
+    lines = text.split('\n')
+    citation_lines = []
+
+    for i, line in enumerate(lines):
+        # Look for lines that start with [number] or have citation-like patterns
+        if re.match(r'^\[\d+\]', line.strip()) or re.search(r'\d{4}\.', line):
+            # Collect this line and a few following lines
+            citation_text = line
+            for j in range(1, min(5, len(lines) - i)):  # Next 5 lines max
+                next_line = lines[i + j]
+                if next_line.strip() and not re.match(r'^[A-Z]', next_line.strip()):  # Not a new section
+                    citation_text += ' ' + next_line.strip()
+                else:
+                    break
+            citation_lines.append(citation_text)
+
+    if citation_lines:
+        return '\n'.join(citation_lines[:50])  # Limit to first 50 citations
+
+    return ""

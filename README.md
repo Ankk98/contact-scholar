@@ -12,6 +12,19 @@ This pipeline automates the process of:
 5. **Message Personalization**: Generate tailored outreach emails using researcher context
 6. **Email Sending**: Send emails one at a time with manual control
 
+## Alternative Approaches
+
+If you already have a collection of research papers, you can bypass the ArXiv search:
+
+```bash
+# Process PDFs directly (extracts from main papers + citations)
+uv run python scripts/pdf_to_researchers.py /path/to/pdf/directory
+
+# Then continue with enrichment and outreach
+jupyter notebook notebooks/04_social_enrichment.ipynb
+jupyter notebook notebooks/05_message_personalization.ipynb
+```
+
 ## Quick Start
 
 ### Prerequisites
@@ -124,7 +137,14 @@ processing:
 - **Output**: `data/researchers_outreach.csv`
 - **Purpose**: Generate personalized outreach messages using LLM
 
-### 6. Email Sending (`scripts/send_emails.py`)
+### 6. PDF to Researchers (`scripts/pdf_to_researchers.py`)
+- **Input**: Directory containing PDF research papers
+- **Output**: `data/researchers.csv`
+- **Purpose**: Bypass the ArXiv search by processing downloaded PDFs directly
+- **Features**: Extracts researchers from main papers AND cited references
+- **Status**: ✅ Core PDF processing working, requires LLM for researcher extraction
+
+### 7. Email Sending (`scripts/send_emails.py`)
 - **Input**: `data/researchers_outreach.csv`
 - **Purpose**: Send emails with manual control and status tracking
 
@@ -194,7 +214,9 @@ contact-scholar/
 │   └── prompts/           # LLM prompt templates
 ├── notebooks/             # Jupyter notebooks (pipeline stages)
 ├── scripts/               # Utility scripts
-│   └── clear_notebook_outputs.py  # Clear outputs before public commits
+│   ├── clear_notebook_outputs.py  # Clear outputs before public commits
+│   ├── pdf_to_researchers.py      # Extract researchers from PDF directory
+│   └── validate_csv.py            # Validate CSV data quality
 ├── tests/                 # Basic tests
 ├── data/                  # Generated CSV files (gitignored)
 ├── outputs/               # Additional outputs (gitignored)
@@ -209,9 +231,10 @@ contact-scholar/
 ### Common Issues
 
 1. **OpenRouter API errors**: Check your API key in `.env`
-2. **Missing dependencies**: Run `uv sync` to install packages
-3. **ArXiv rate limits**: Built-in delays handle 3 req/sec limits
-4. **DuckDuckGo blocking**: May need manual fallback for some searches
+2. **LM Studio not responding**: Ensure LM Studio is running on `http://127.0.0.1:1234` with the correct model loaded
+3. **Missing dependencies**: Run `uv sync` to install packages
+4. **ArXiv rate limits**: Built-in delays handle 3 req/sec limits
+5. **DuckDuckGo blocking**: May need manual fallback for some searches
 
 ### Recovery
 
